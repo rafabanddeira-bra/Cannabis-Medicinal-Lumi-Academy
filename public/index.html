@@ -603,8 +603,7 @@ document.getElementById('telefone').addEventListener('input', function(e) {
   e.target.value = v;
 });
 
-document.getElementById('formSubmit').addEventListener('click', async function() {
-  const btn = this;
+document.getElementById('formSubmit').addEventListener('click', function() {
   const nome = document.getElementById('nome').value.trim();
   const email = document.getElementById('email').value.trim();
   const telefone = document.getElementById('telefone').value.trim();
@@ -612,37 +611,28 @@ document.getElementById('formSubmit').addEventListener('click', async function()
   const especialidade = document.getElementById('especialidade').value.trim();
   const motivo = document.getElementById('motivo').value.trim();
   const prescricaoEl = document.querySelector('input[name="prescricao"]:checked');
-  const prescricao = prescricaoEl ? prescricaoEl.value : '';
+  const prescricaoMap = { nunca: 'Nunca prescrevi', alguns: 'Já prescrevi em alguns casos', regular: 'Prescrevo regularmente' };
+  const prescricao = prescricaoEl ? prescricaoMap[prescricaoEl.value] || '' : 'Não informado';
 
   if (!nome || !email || !telefone || !crm) { alert('Por favor, preencha todos os campos obrigatórios.'); return; }
   if (!email.includes('@') || !email.includes('.')) { alert('Por favor, insira um e-mail válido.'); return; }
 
-  // Loading state
-  btn.disabled = true;
-  btn.innerHTML = '<span style="display:inline-flex;align-items:center;gap:8px;"><svg width="20" height="20" viewBox="0 0 24 24" style="animation:spin 1s linear infinite;fill:none;stroke:currentColor;stroke-width:2.5"><circle cx="12" cy="12" r="10" stroke-dasharray="50" stroke-dashoffset="15"/></svg> Enviando...</span>';
+  const msg = `*Nova Inscrição — Dossiê Clínico*%0A%0A` +
+    `*Nome:* ${encodeURIComponent(nome)}%0A` +
+    `*E-mail:* ${encodeURIComponent(email)}%0A` +
+    `*Telefone:* ${encodeURIComponent(telefone)}%0A` +
+    `*CRM/CRO:* ${encodeURIComponent(crm)}%0A` +
+    `*Especialidade:* ${encodeURIComponent(especialidade || 'Não informada')}%0A` +
+    `*Prescreve cannabis?* ${encodeURIComponent(prescricao)}%0A` +
+    (motivo ? `*Motivo:* ${encodeURIComponent(motivo)}%0A` : '');
 
-  try {
-    const response = await fetch('/api/send', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ nome, email, telefone, crm, especialidade, prescricao, motivo }),
-    });
+  window.open('https://wa.me/5541992581497?text=' + msg, '_blank');
 
-    const data = await response.json();
-
-    if (response.ok && data.success) {
-      btn.innerHTML = '<span style="display:inline-flex;align-items:center;gap:8px;">✓ Inscrição Enviada!</span>';
-      btn.style.background = 'var(--green-mid)';
-      btn.style.color = 'var(--white)';
-      setTimeout(closeModal, 2500);
-    } else {
-      throw new Error(data.error || 'Erro ao enviar');
-    }
-  } catch (err) {
-    btn.disabled = false;
-    btn.innerHTML = '<svg viewBox="0 0 24 24" style="width:20px;height:20px;fill:var(--green-dark)"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Enviar Inscrição';
-    alert('Ocorreu um erro ao enviar. Tente novamente.');
-  }
+  this.innerHTML = '<span style="display:inline-flex;align-items:center;gap:8px;">✓ Redirecionado para WhatsApp!</span>';
+  this.style.background = 'var(--green-mid)';
+  this.style.color = 'var(--white)';
+  this.disabled = true;
+  setTimeout(closeModal, 2500);
 });
 </script>
 </body>
